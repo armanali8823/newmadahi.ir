@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>مدیریت مداحی‌ها | خروجی JSON</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn&display=swap');
+  * {
+    box-sizing: border-box;
+    font-family: 'Vazirmatn', sans-serif;
+  }
+  body {
+    background: #121212;
+    color: #eee;
+    margin: 0;
+    padding: 20px;
+    direction: rtl;
+  }
+  h1 {
+    text-align: center;
+    color: #f9b700;
+    margin-bottom: 20px;
+  }
+  form {
+    max-width: 600px;
+    margin: 0 auto 30px;
+    background: #222;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px #000;
+  }
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  input[type="text"], input[type="url"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    background: #333;
+    color: #eee;
+  }
+  button {
+    background: #f9b700;
+    border: none;
+    color: #222;
+    font-weight: 700;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s;
+  }
+  button:hover {
+    background: #e0a800;
+  }
+  .playlist {
+    max-width: 600px;
+    margin: 0 auto 20px;
+  }
+  .track {
+    background: #222;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px #000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .track-info {
+    max-width: 70%;
+    overflow-wrap: break-word;
+  }
+  .track-info h3 {
+    margin: 0 0 5px 0;
+    color: #f9b700;
+  }
+  .track-info a {
+    color: #ddd;
+    font-size: 0.9rem;
+    word-break: break-all;
+    text-decoration: none;
+  }
+  .actions button {
+    background: transparent;
+    border: none;
+    color: #f9b700;
+    font-size: 1.3rem;
+    margin-left: 10px;
+    cursor: pointer;
+  }
+  .actions button:hover {
+    color: #fff;
+  }
+  textarea {
+    width: 100%;
+    height: 180px;
+    background: #111;
+    color: #eee;
+    border-radius: 12px;
+    border: none;
+    padding: 15px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    resize: vertical;
+  }
+  .footer {
+    max-width: 600px;
+    margin: 20px auto 0;
+    text-align: center;
+    color: #aaa;
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+<h1>مدیریت مداحی‌ها و دریافت JSON</h1>
+
+<form id="addForm">
+  <label for="title">عنوان مداحی</label>
+  <input type="text" id="title" placeholder="مثلاً: میم مثل مادر (حسین ستوده)" required />
+  <label for="src">آدرس فایل صوتی (MP3)</label>
+  <input type="url" id="src" placeholder="مثلاً: https://example.com/file.mp3" required />
+  <button type="submit">افزودن مداحی</button>
+</form>
+
+<div class="playlist" id="playlist"></div>
+
+<h2>خروجی JSON مداحی‌ها (برای کپی و ذخیره در سایت)</h2>
+<textarea id="jsonOutput" readonly></textarea>
+
+<div class="footer">  
+  طراحی شده توسط AliSeda.ir  
+</div>
+
+<script>
+  const form = document.getElementById('addForm');
+  const playlist = document.getElementById('playlist');
+  const jsonOutput = document.getElementById('jsonOutput');
+
+  let tracks = [];
+
+  // رندر لیست مداحی‌ها
+  function renderTracks() {
+    playlist.innerHTML = '';
+    if (tracks.length === 0) {
+      playlist.innerHTML = '<p style="text-align:center; color:#aaa;">هیچ مداحی‌ای ثبت نشده.</p>';
+      jsonOutput.value = '[]';
+      return;
+    }
+
+    tracks.forEach((track, idx) => {
+      const div = document.createElement('div');
+      div.className = 'track';
+      div.dataset.index = idx;
+
+      div.innerHTML = `
+        <div class="track-info">
+          <h3>${track.title}</h3>
+          <a href="${track.src}" target="_blank" rel="noopener">${track.src}</a>
+        </div>
+        <div class="actions">
+          <button title="ویرایش" aria-label="ویرایش">&#9998;</button>
+          <button title="حذف" aria-label="حذف">&#10006;</button>
+        </div>
+      `;
+      playlist.appendChild(div);
+    });
+
+    jsonOutput.value = JSON.stringify(tracks, null, 2);
+  }
+
+  // افزودن مداحی جدید
+  function addTrack(title, src) {
+    tracks.push({title, src});
+    renderTracks();
+  }
+
+  // حذف مداحی
+  function deleteTrack(index) {
+    tracks.splice(index, 1);
+    renderTracks();
+  }
+
+  // ویرایش مداحی
+  function enableEdit(div, index) {
+    div.classList.add('edit-mode');
+    const infoDiv = div.querySelector('.track-info');
+    const actionsDiv = div.querySelector('.actions');
+    const track = tracks[index];
+
+    infoDiv.innerHTML = `
+      <input type="text" class="edit-title" value="${track.title}" />
+      <input type="url" class="edit-src" value="${track.src}" />
+    `;
+    actionsDiv.innerHTML = `
+      <button title="ذخیره" aria-label="ذخیره">&#10004;</button>
+      <button title="انصراف" aria-label="انصراف">&#10006;</button>
+    `;
+
+    actionsDiv.querySelector('button[title="ذخیره"]').onclick = () => {
+      const newTitle = infoDiv.querySelector('.edit-title').value.trim();
+      const newSrc = infoDiv.querySelector('.edit-src').value.trim();
+      if (newTitle && newSrc) {
+        tracks[index] = {title: newTitle, src: newSrc};
+        renderTracks();
+      } else {
+        alert('لطفاً هر دو فیلد را پر کنید.');
+      }
+    };
+
+    actionsDiv.querySelector('button[title="انصراف"]').onclick = () => {
+      renderTracks();
+    };
+  }
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const title = form.title.value.trim();
+    const src = form.src.value.trim();
+    if (title && src) {
+      addTrack(title, src);
+      form.reset();
+    } else {
+      alert('لطفاً عنوان و آدرس فایل را وارد کنید.');
+    }
+  });
+
+  playlist.addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+
+    const div = e.target.closest('.track');
+    const index = +div.dataset.index;
+
+    if (btn.title === 'حذف') {
+      if (confirm('آیا مطمئنید می‌خواهید این مداحی را حذف کنید؟')) {
+        deleteTrack(index);
+      }
+    }
+    if (btn.title === 'ویرایش') {
+      enableEdit(div, index);
+    }
+  });
+
+  renderTracks();
+</script>
+</body>
+  </html>
