@@ -3,252 +3,201 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>مدیریت مداحی‌ها | خروجی JSON</title>
+<title>پخش مداحی‌ها</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Vazirmatn&display=swap');
   * {
-    box-sizing: border-box;
+    margin: 0; padding: 0; box-sizing: border-box;
     font-family: 'Vazirmatn', sans-serif;
   }
   body {
-    background: #121212;
-    color: #eee;
-    margin: 0;
-    padding: 20px;
+    background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQb82LbsrGC793BmDe3uxZ5uC8dfMb0lkyT_w&s') no-repeat center center fixed;
+    background-size: cover;
+    color: #fff;
     direction: rtl;
+    padding-bottom: 100px;
   }
-  h1 {
+  header {
+    background: rgba(0,0,0,0.8);
+    padding: 30px 20px;
     text-align: center;
-    color: #f9b700;
-    margin-bottom: 20px;
+    box-shadow: 0 0 20px #000;
   }
-  form {
-    max-width: 600px;
-    margin: 0 auto 30px;
-    background: #222;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 0 15px #000;
-  }
-  label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    font-size: 1rem;
-  }
-  input[type="text"], input[type="url"] {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
-    margin-bottom: 15px;
-    font-size: 1rem;
-    background: #333;
-    color: #eee;
-  }
-  button {
-    background: #f9b700;
-    border: none;
-    color: #222;
-    font-weight: 700;
-    padding: 12px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background 0.3s;
-  }
-  button:hover {
-    background: #e0a800;
+  header h1 {
+    font-size: 2.5rem;
+    color: #ffd700;
   }
   .playlist {
-    max-width: 600px;
-    margin: 0 auto 20px;
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background: rgba(26,26,26,0.85);
+    border-radius: 20px;
+    box-shadow: 0 0 15px rgba(255,255,255,0.1);
   }
   .track {
-    background: #222;
-    padding: 15px 20px;
-    margin-bottom: 15px;
-    border-radius: 12px;
-    box-shadow: 0 0 10px #000;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #333;
+  }
+  .track:last-child {
+    border: none;
+  }
+  .track h2 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #ffcc00;
     display: flex;
-    justify-content: space-between;
     align-items: center;
   }
-  .track-info {
-    max-width: 70%;
-    overflow-wrap: break-word;
+  .badge-new {
+    background: red;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 12px;
+    margin-left: 8px;
   }
-  .track-info h3 {
-    margin: 0 0 5px 0;
-    color: #f9b700;
+  .badge-new.hidden {
+    display: none;
   }
-  .track-info a {
-    color: #ddd;
-    font-size: 0.9rem;
-    word-break: break-all;
-    text-decoration: none;
-  }
-  .actions button {
-    background: transparent;
-    border: none;
-    color: #f9b700;
-    font-size: 1.3rem;
-    margin-left: 10px;
+  .progress-container {
+    height: 8px;
+    background: #444;
+    margin-top: 10px;
+    border-radius: 4px;
+    overflow: hidden;
     cursor: pointer;
   }
-  .actions button:hover {
-    color: #fff;
+  .progress {
+    height: 100%;
+    width: 0%;
+    background: #ffcc00;
+    transition: width 0.2s;
   }
-  textarea {
+  footer {
+    position: fixed;
+    bottom: 0;
     width: 100%;
-    height: 180px;
-    background: #111;
-    color: #eee;
-    border-radius: 12px;
-    border: none;
-    padding: 15px;
-    font-family: monospace;
-    font-size: 0.9rem;
-    resize: vertical;
-  }
-  .footer {
-    max-width: 600px;
-    margin: 20px auto 0;
+    background: rgba(0,0,0,0.8);
     text-align: center;
+    padding: 10px;
     color: #aaa;
     font-size: 0.9rem;
+  }
+  .empty-message {
+    color: #ccc;
+    text-align: center;
+    padding: 40px 0;
+    font-size: 1.2rem;
+  }
+  a {
+    color: #ffd700;
+    text-decoration: underline;
   }
 </style>
 </head>
 <body>
-<h1>مدیریت مداحی‌ها و دریافت JSON</h1>
-
-<form id="addForm">
-  <label for="title">عنوان مداحی</label>
-  <input type="text" id="title" placeholder="مثلاً: میم مثل مادر (حسین ستوده)" required />
-  <label for="src">آدرس فایل صوتی (MP3)</label>
-  <input type="url" id="src" placeholder="مثلاً: https://example.com/file.mp3" required />
-  <button type="submit">افزودن مداحی</button>
-</form>
-
+<header>
+  <h1>مداحی‌های شما</h1>
+</header>
 <div class="playlist" id="playlist"></div>
-
-<h2>خروجی JSON مداحی‌ها (برای کپی و ذخیره در سایت)</h2>
-<textarea id="jsonOutput" readonly></textarea>
-
-<div class="footer">  
-  طراحی شده توسط AliSeda.ir  
-</div>
+<footer>
+  طراحی و توسعه توسط AliSeda.ir © 2025
+</footer>
 
 <script>
-  const form = document.getElementById('addForm');
-  const playlist = document.getElementById('playlist');
-  const jsonOutput = document.getElementById('jsonOutput');
+  const playlistDiv = document.getElementById('playlist');
+  const storageKey = 'madahiTracks'; // کلید ذخیره آهنگ‌ها
+  const playedKey = 'playedTracks'; // کلید ذخیره آهنگ‌های پخش شده
 
-  let tracks = [];
+  // آهنگ‌ها رو خودت اینجا بذار:
+  const tracks = [
+    {
+      title: "میم مثل مادر (حسین ستوده)",
+      src: "https://dl.musicdel.ir/Music/1403/08/Hossein%20Sotode-Madar%20-musicdel.ir%20128.mp3"
+    },
+    {
+      title: "قمر سلام (امیر طلاجوران)",
+      src: "https://dl.papilmusic.ir/Music/Amir Talajoran - Ghamar Salam.mp3"
+    },
+    {
+      title: "ام البکاء (حسین ستوده)",
+      src: "https://files.olgoirani.com/Files/Content/1403/10/19909/Om-alboka.mp3"
+    }
+  ];
 
-  // رندر لیست مداحی‌ها
+  // آهنگ‌هایی که پخش شدند را از localStorage می‌خوانیم
+  let playedTracks = JSON.parse(localStorage.getItem(playedKey) || '[]');
+
+  function savePlayedTracks() {
+    localStorage.setItem(playedKey, JSON.stringify(playedTracks));
+  }
+
   function renderTracks() {
-    playlist.innerHTML = '';
-    if (tracks.length === 0) {
-      playlist.innerHTML = '<p style="text-align:center; color:#aaa;">هیچ مداحی‌ای ثبت نشده.</p>';
-      jsonOutput.value = '[]';
+    playlistDiv.innerHTML = '';
+    if(tracks.length === 0){
+      playlistDiv.innerHTML = '<p class="empty-message">هیچ مداحی‌ای برای پخش ثبت نشده است.</p>';
       return;
     }
 
-    tracks.forEach((track, idx) => {
+    tracks.forEach((track, index) => {
+      const isNew = !playedTracks.includes(track.src);
+
       const div = document.createElement('div');
       div.className = 'track';
-      div.dataset.index = idx;
 
       div.innerHTML = `
-        <div class="track-info">
-          <h3>${track.title}</h3>
-          <a href="${track.src}" target="_blank" rel="noopener">${track.src}</a>
-        </div>
-        <div class="actions">
-          <button title="ویرایش" aria-label="ویرایش">&#9998;</button>
-          <button title="حذف" aria-label="حذف">&#10006;</button>
+        <h2>
+          ${track.title}
+          <span class="badge-new ${isNew ? '' : 'hidden'}">جدید 🔥</span>
+        </h2>
+        <audio id="audio-${index}" src="${track.src}" preload="metadata" controls></audio>
+        <div class="progress-container" id="progress-container-${index}">
+          <div class="progress" id="progress-${index}"></div>
         </div>
       `;
-      playlist.appendChild(div);
+      playlistDiv.appendChild(div);
+
+      const audio = div.querySelector(`#audio-${index}`);
+      const progress = div.querySelector(`#progress-${index}`);
+      const container = div.querySelector(`#progress-container-${index}`);
+      const badge = div.querySelector('.badge-new');
+
+      audio.addEventListener('play', () => {
+        // قطع کردن همه بقیه آهنگ‌ها
+        document.querySelectorAll('audio').forEach(a => {
+          if(a !== audio){
+            a.pause();
+            a.currentTime = 0;
+          }
+        });
+
+        // حذف برچسب جدید برای این آهنگ
+        if (badge && !badge.classList.contains('hidden')) {
+          badge.classList.add('hidden');
+          if (!playedTracks.includes(track.src)) {
+            playedTracks.push(track.src);
+            savePlayedTracks();
+          }
+        }
+      });
+
+      audio.addEventListener('timeupdate', () => {
+        const percent = (audio.currentTime / audio.duration) * 100 || 0;
+        progress.style.width = percent + '%';
+      });
+
+      container.addEventListener('click', e => {
+        const width = container.clientWidth;
+        const clickX = e.offsetX;
+        const duration = audio.duration;
+        if (!isNaN(duration)) {
+          audio.currentTime = (clickX / width) * duration;
+        }
+      });
     });
-
-    jsonOutput.value = JSON.stringify(tracks, null, 2);
   }
-
-  // افزودن مداحی جدید
-  function addTrack(title, src) {
-    tracks.push({title, src});
-    renderTracks();
-  }
-
-  // حذف مداحی
-  function deleteTrack(index) {
-    tracks.splice(index, 1);
-    renderTracks();
-  }
-
-  // ویرایش مداحی
-  function enableEdit(div, index) {
-    div.classList.add('edit-mode');
-    const infoDiv = div.querySelector('.track-info');
-    const actionsDiv = div.querySelector('.actions');
-    const track = tracks[index];
-
-    infoDiv.innerHTML = `
-      <input type="text" class="edit-title" value="${track.title}" />
-      <input type="url" class="edit-src" value="${track.src}" />
-    `;
-    actionsDiv.innerHTML = `
-      <button title="ذخیره" aria-label="ذخیره">&#10004;</button>
-      <button title="انصراف" aria-label="انصراف">&#10006;</button>
-    `;
-
-    actionsDiv.querySelector('button[title="ذخیره"]').onclick = () => {
-      const newTitle = infoDiv.querySelector('.edit-title').value.trim();
-      const newSrc = infoDiv.querySelector('.edit-src').value.trim();
-      if (newTitle && newSrc) {
-        tracks[index] = {title: newTitle, src: newSrc};
-        renderTracks();
-      } else {
-        alert('لطفاً هر دو فیلد را پر کنید.');
-      }
-    };
-
-    actionsDiv.querySelector('button[title="انصراف"]').onclick = () => {
-      renderTracks();
-    };
-  }
-
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const title = form.title.value.trim();
-    const src = form.src.value.trim();
-    if (title && src) {
-      addTrack(title, src);
-      form.reset();
-    } else {
-      alert('لطفاً عنوان و آدرس فایل را وارد کنید.');
-    }
-  });
-
-  playlist.addEventListener('click', e => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-
-    const div = e.target.closest('.track');
-    const index = +div.dataset.index;
-
-    if (btn.title === 'حذف') {
-      if (confirm('آیا مطمئنید می‌خواهید این مداحی را حذف کنید؟')) {
-        deleteTrack(index);
-      }
-    }
-    if (btn.title === 'ویرایش') {
-      enableEdit(div, index);
-    }
-  });
 
   renderTracks();
 </script>
